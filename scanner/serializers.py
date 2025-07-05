@@ -1,0 +1,21 @@
+# scanner/serializers.py
+from rest_framework import serializers
+from .models import IntakeItem, Asset, CustodyLocation
+
+class IntakeItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = IntakeItem
+        fields = '__all__'
+        read_only_fields = ('approved',)
+
+class AssetSerializer(serializers.ModelSerializer):
+    intake_item = IntakeItemSerializer(read_only=True)
+
+    class Meta:
+        model = Asset
+        fields = '__all__'
+
+class CustodyLocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustodyLocation
+        fields = '__all__'

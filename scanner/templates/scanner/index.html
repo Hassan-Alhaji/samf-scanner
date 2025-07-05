@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SAMF Product Scanner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Cairo, sans-serif; padding: 20px; background: #f5f8ff; text-align: center; }
+    input, button { margin: 10px auto; padding: 10px; width: 90%; max-width: 400px; border-radius: 6px; border: 1px solid #ccc; }
+    video, img { max-width: 90%; border-radius: 10px; margin-top: 15px; }
+    button { background: #007bff; color: white; border: none; cursor: pointer; }
+    button:hover { background: #0056b3; }
+  </style>
+</head>
+<body>
+<h2>SAMF Product Scanner</h2>
+<video id="video" autoplay playsinline></video>
+<canvas id="canvas" style="display:none"></canvas>
+<img id="preview" alt="Image preview" style="display:none"/>
+
+<form id="productForm">
+  <input type="text" id="description" placeholder="الوصف" required />
+  <input type="text" id="brand" placeholder="العلامة التجارية" />
+  <input type="text" id="color" placeholder="اللون" />
+  <input type="text" id="size" placeholder="الحجم" />
+  <input type="number" id="quantity" placeholder="الكمية" value="1" min="1" />
+  <button type="button" onclick="captureImage()">التقاط الصورة</button>
+  <button type="submit">حفظ وإرسال</button>
+</form>
+
+<script>
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const preview = document.getElementById('preview');
+
+navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+  .then(stream => video.srcObject = stream)
+  .catch(err => alert('لا يمكن تشغيل الكاميرا: ' + err));
+
+function captureImage() {
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  canvas.toBlob(blob => {
+    preview.src = URL.createObjectURL(blob);
+    preview.style.display = 'block';
+    preview._blob = blob; // نحتفظ بالصورة هنا
+  }, 'image/jpeg');
+}
+
+document.getElementById('productForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  if (!preview._blob) return alert('الرجاء التقاط صورة أولاً.');
+
+  const formData = new FormData();
+  formData.append('description', document.getElementById('description').value);
+  formData.append('brand', document.getElementById('brand').value);
+  formData.append('color', document.getElementById('color').value);
+  formData.append('size', document.getElementById('size').value);
+  formData.append('quantity', document.getElementById('quantity').value);
+  formData.append('image', preview._blob, 'capture.jpg');
+
+  const res = await fetch('/api/intake/', {
+    method: 'POST',
+    body: formData
+  });
+
+  if (res.ok) {
+    alert('تم الحفظ بنجاح');
+    document.getElementById('productForm').reset();
+    preview.style.display = 'none';
+  } else {
+    const data = await res.json();
+    alert('خطأ أثناء الحفظ: ' + (data.detail || '')); 
+  }
+});
+</script>
+</body>
+</html>
