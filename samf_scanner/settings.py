@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-g)_c6@-5tn4d6234h*8v9lzv1%j$sce0*v&)czb91hf-3)c&fc
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['samf-scanner.onrender.com']
 
 
 # Application definition
