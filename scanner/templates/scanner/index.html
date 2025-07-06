@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <title>SAMF Product Scanner</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: Cairo, sans-serif; padding: 20px; background: #f5f8ff; text-align: center; }
+    body { font-family: Cairo, sans-serif; padding: 20px; background: #f5f8ff; text-align: center; direction: rtl; }
     input, button { margin: 10px auto; padding: 10px; width: 90%; max-width: 400px; border-radius: 6px; border: 1px solid #ccc; }
     video, img { max-width: 90%; border-radius: 10px; margin-top: 15px; }
     button { background: #007bff; color: white; border: none; cursor: pointer; }
@@ -15,16 +15,16 @@
 </head>
 <body>
 
-<h2>SAMF Product Scanner</h2>
+<h2>نظام تسجيل الأصول – SAMF</h2>
 
 <div id="workerDiv">
-  <input type="text" id="worker" placeholder="اسم العامل" />
-  <button onclick="saveWorkerName()">حفظ اسم العامل</button>
+  <input type="text" id="worker" placeholder="اسمك" />
+  <button onclick="saveWorkerName()">ادخل</button>
 </div>
 
 <video id="video" autoplay playsinline></video>
 <canvas id="canvas" style="display:none"></canvas>
-<img id="preview" alt="Image preview" style="display:none"/>
+<img id="preview" alt="صورة المعاينة" style="display:none"/>
 
 <form id="productForm">
   <input type="text" id="description" placeholder="الوصف" required />
@@ -58,10 +58,10 @@ function captureImage() {
   }, 'image/jpeg');
 }
 
-// حفظ اسم العامل في localStorage
+// حفظ الاسم في LocalStorage
 function saveWorkerName() {
   const name = document.getElementById('worker').value.trim();
-  if (!name) return alert("يرجى إدخال اسم العامل");
+  if (!name) return alert("ادخل اسمك للاستمرار");
   localStorage.setItem('worker_name', name);
   document.getElementById('workerDiv').style.display = 'none';
 }
@@ -79,7 +79,7 @@ document.getElementById('productForm').addEventListener('submit', async function
   e.preventDefault();
   if (!preview._blob) return alert('الرجاء التقاط صورة أولاً.');
   const name = localStorage.getItem('worker_name');
-  if (!name) return alert("يرجى إدخال اسم العامل أولا");
+  if (!name) return alert("ادخل اسمك للاستمرار");
 
   const formData = new FormData();
   formData.append('description', document.getElementById('description').value);

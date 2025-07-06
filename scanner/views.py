@@ -8,8 +8,7 @@ from .models import IntakeItem, Asset, CustodyLocation
 from .serializers import IntakeItemSerializer, AssetSerializer, CustodyLocationSerializer
 from django.contrib.auth.decorators import login_required, user_passes_test
 
-@login_required
-@user_passes_test(lambda u: u.is_staff)  # فقط المدير أو المستخدمين المصرح لهم
+
 
 class IntakeItemViewSet(viewsets.ModelViewSet):
     queryset = IntakeItem.objects.all().order_by('-created_at')
@@ -24,7 +23,6 @@ class IntakeItemViewSet(viewsets.ModelViewSet):
         location_id  = request.data.get('location')
         if not asset_number or not location_id:
             return Response({'detail': 'asset_number and location required'}, status=400)
-        # تأكيد عدم التكرار
         if Asset.objects.filter(asset_number=asset_number).exists():
             return Response({'detail': 'Asset number exists'}, status=400)
         item.approved = True
@@ -34,7 +32,7 @@ class IntakeItemViewSet(viewsets.ModelViewSet):
         return Response({'detail': 'Approved'}, status=status.HTTP_201_CREATED)
     
     def perform_create(self, serializer):
-        serializer.save(uploader=self.request.user)
+        serializer.save(worker_name=self.request.user)
 
 class AssetViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Asset.objects.select_related('intake_item', 'location')
