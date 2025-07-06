@@ -6,6 +6,10 @@ from rest_framework.response import Response
 from rest_framework import status, viewsets
 from .models import IntakeItem, Asset, CustodyLocation
 from .serializers import IntakeItemSerializer, AssetSerializer, CustodyLocationSerializer
+from django.contrib.auth.decorators import login_required, user_passes_test
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)  # فقط المدير أو المستخدمين المصرح لهم
 
 class IntakeItemViewSet(viewsets.ModelViewSet):
     queryset = IntakeItem.objects.all().order_by('-created_at')
@@ -28,6 +32,9 @@ class IntakeItemViewSet(viewsets.ModelViewSet):
         location = CustodyLocation.objects.get(pk=location_id)
         Asset.objects.create(asset_number=asset_number, intake_item=item, location=location)
         return Response({'detail': 'Approved'}, status=status.HTTP_201_CREATED)
+    
+    def perform_create(self, serializer):
+        serializer.save(uploader=self.request.user)
 
 class AssetViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Asset.objects.select_related('intake_item', 'location')
@@ -36,3 +43,14 @@ class AssetViewSet(viewsets.ReadOnlyModelViewSet):
 class CustodyLocationViewSet(viewsets.ModelViewSet):
     queryset = CustodyLocation.objects.all()
     serializer_class = CustodyLocationSerializer
+    
+def frontend_view(request):
+    return render(request, 'scanner/index.html')
+
+def manager_view(request):
+    pending = IntakeItem.objects.filter(approved=False)
+    locations = CustodyLocation.objects.all()
+    return render(request, 'scanner/manager.html', {
+        'pending': pending,
+        'locations': locations
+    })

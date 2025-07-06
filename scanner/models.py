@@ -1,5 +1,7 @@
 # scanner/models.py
 from django.db import models
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 class IntakeItem(models.Model):
     description = models.CharField(max_length=255)
@@ -10,6 +12,7 @@ class IntakeItem(models.Model):
     image       = models.ImageField(upload_to='products/%Y/%m/')
     created_at  = models.DateTimeField(auto_now_add=True)
     approved    = models.BooleanField(default=False)  # لا تُمنح رقم أصل إلا بعد الموافقة
+    uploader   = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return f"{self.description} – {self.brand} (x{self.quantity})"

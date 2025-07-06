@@ -10,10 +10,18 @@
     video, img { max-width: 90%; border-radius: 10px; margin-top: 15px; }
     button { background: #007bff; color: white; border: none; cursor: pointer; }
     button:hover { background: #0056b3; }
+    #workerDiv { margin-bottom: 20px; }
   </style>
 </head>
 <body>
+
 <h2>SAMF Product Scanner</h2>
+
+<div id="workerDiv">
+  <input type="text" id="worker" placeholder="اسم العامل" />
+  <button onclick="saveWorkerName()">حفظ اسم العامل</button>
+</div>
+
 <video id="video" autoplay playsinline></video>
 <canvas id="canvas" style="display:none"></canvas>
 <img id="preview" alt="Image preview" style="display:none"/>
@@ -33,10 +41,12 @@ const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
 const preview = document.getElementById('preview');
 
+// تشغيل الكاميرا
 navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
   .then(stream => video.srcObject = stream)
   .catch(err => alert('لا يمكن تشغيل الكاميرا: ' + err));
 
+// التقاط الصورة
 function captureImage() {
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
@@ -44,13 +54,32 @@ function captureImage() {
   canvas.toBlob(blob => {
     preview.src = URL.createObjectURL(blob);
     preview.style.display = 'block';
-    preview._blob = blob; // نحتفظ بالصورة هنا
+    preview._blob = blob;
   }, 'image/jpeg');
 }
 
+// حفظ اسم العامل في localStorage
+function saveWorkerName() {
+  const name = document.getElementById('worker').value.trim();
+  if (!name) return alert("يرجى إدخال اسم العامل");
+  localStorage.setItem('worker_name', name);
+  document.getElementById('workerDiv').style.display = 'none';
+}
+
+// عند تحميل الصفحة، افحص إذا الاسم محفوظ
+window.onload = () => {
+  const name = localStorage.getItem('worker_name');
+  if (name) {
+    document.getElementById('workerDiv').style.display = 'none';
+  }
+};
+
+// إرسال النموذج
 document.getElementById('productForm').addEventListener('submit', async function(e) {
   e.preventDefault();
   if (!preview._blob) return alert('الرجاء التقاط صورة أولاً.');
+  const name = localStorage.getItem('worker_name');
+  if (!name) return alert("يرجى إدخال اسم العامل أولا");
 
   const formData = new FormData();
   formData.append('description', document.getElementById('description').value);
@@ -59,6 +88,7 @@ document.getElementById('productForm').addEventListener('submit', async function
   formData.append('size', document.getElementById('size').value);
   formData.append('quantity', document.getElementById('quantity').value);
   formData.append('image', preview._blob, 'capture.jpg');
+  formData.append('worker_name', name);
 
   const res = await fetch('/api/intake/', {
     method: 'POST',
@@ -71,7 +101,7 @@ document.getElementById('productForm').addEventListener('submit', async function
     preview.style.display = 'none';
   } else {
     const data = await res.json();
-    alert('خطأ أثناء الحفظ: ' + (data.detail || '')); 
+    alert('خطأ أثناء الحفظ: ' + (data.detail || ''));
   }
 });
 </script>
